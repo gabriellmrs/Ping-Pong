@@ -3,6 +3,8 @@ const canvasEl = document.querySelector("canvas"),
 canvasCtx = canvasEl.getContext("2d"),
 gapX = 10 
 
+const mouse = { x: 0, y: 0}
+
 //Objeto com altura, largura (Campo)
 const field = {
     w:window.innerWidth,
@@ -29,12 +31,18 @@ const line = {
 //Raquete esquerda
 const leftPaddle = {
     x: gapX,
-    y: 100,
+    y: 0,
     w: line.w,
     h: 200,
+    _move: function(){
+        //atribui o valor do eixo y ao mouse.y e o - h / 2 deixa o curso no meio da barra
+        this.y = mouse.y - this.h / 2 
+    },
     draw: function() {
         canvasCtx.fillStyle = "#ffffff"
         canvasCtx.fillRect(this.x, this.y, this.w, this.h)
+
+        this._move()
     }
 
 }
@@ -45,9 +53,14 @@ const rightPaddle = {
     y: 100,
     w: line.w,
     h: 200,
+    _move: function() {
+        this.y = ball.y
+    },
     draw: function() {
         canvasCtx.fillStyle = "#ffffff"
         canvasCtx.fillRect(this.x, this.y, this.w, this.h)
+
+        this._move()
     }
 }
 
@@ -56,11 +69,19 @@ const ball = {
     x: 300,
     y: 500,
     r: 20,
+    speed: 5,//velocidade dad bola
+    //Altera a posição da bola
+    _move: function() {
+        this.x += 1 * this.speed
+        this.y += 1 * this.speed
+    },
     draw: function() {
         canvasCtx.fillStyle = "#ffffff"
         canvasCtx.beginPath()
         canvasCtx.arc(this.y, this.x, this.r, 0 , 2 * Math.PI, false)
         canvasCtx.fill()
+
+        this._move()
     }
 }
 
@@ -97,5 +118,34 @@ function draw () {
     
 }
 
-setup()
-draw()
+//API para fazer uma animação suave
+window.animateFrame = (function () {
+    return (
+        //Verificando o navegador
+      window.requestAnimationFrame ||
+      window.webkitRequestAnimationFrame ||
+      window.mozRequestAnimationFrame ||
+      window.oRequestAnimationFrame ||
+      window.msRequestAnimationFrame ||
+      function (callback) {
+        //Atualiza a posição da bola 60 vzs por segundo
+        return window.setTimeout(callback, 1000 / 60)
+      }
+    )
+  })()
+
+  function main() {
+    animateFrame(main)
+    draw()
+  }
+
+  setup()
+  main()
+
+  //movimentar a raquete com o mouse
+  canvasEl.addEventListener("mousemove", function (e) {
+    mouse.x = e.pageX
+    mouse.y = e.pageY
+  }) 
+    
+  
