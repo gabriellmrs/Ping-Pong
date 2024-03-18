@@ -24,8 +24,6 @@ const line = {
         canvasCtx.fillStyle = "#ffffff"//Cor da linha no meio do campo
         canvasCtx.fillRect(field.w / 2 - this.w / 2, 0, this.w, this.h)//Desenha a linha (O this se refere ao elemento dentro do OBJ)
     }
-    
-
 }
 
 //Raquete esquerda
@@ -50,7 +48,7 @@ const leftPaddle = {
 //Raquete direita
 const rightPaddle = {
     x: field.w - line.w - gapX,
-    y: 100,
+    y: 0,
     w: line.w,
     h: 200,
     _move: function() {
@@ -64,40 +62,108 @@ const rightPaddle = {
     }
 }
 
-//Bola
-const ball = {
-    x: 300,
-    y: 500,
-    r: 20,
-    speed: 5,//velocidade dad bola
-    //Altera a posição da bola
-    _move: function() {
-        this.x += 1 * this.speed
-        this.y += 1 * this.speed
-    },
-    draw: function() {
-        canvasCtx.fillStyle = "#ffffff"
-        canvasCtx.beginPath()
-        canvasCtx.arc(this.y, this.x, this.r, 0 , 2 * Math.PI, false)
-        canvasCtx.fill()
-
-        this._move()
-    }
-}
-
 //Placar
 const score = {
     human: 0,
     computer: 0,
+    increaseHuman: function() {
+        this.human++
+    },
+    increaseComputer: function() {
+        this.computer++
+    },
     draw: function() {
         canvasCtx.font = "bold 72px Arial"
         canvasCtx.textAlign = "center"
         canvasCtx.textBaseline = "top"
         canvasCtx.fillStyle = "#01341D"
+        //Posição do placar
         canvasCtx.fillText(this.human, field.w / 4, 50)
         canvasCtx.fillText(this.computer, field.w / 4 + field.w /2, 50)
     }
 }
+
+//Bola
+const ball = {
+    x: 0,
+    y: 0,
+    r: 20,
+    speed: 10,
+    directionX: 1,
+    directionY: 1,
+    _calcPosition: function () {
+        //Verificar se o jogador 1 fez ponto
+        if(this.x > field.w - this.r - gapX - rightPaddle.w) {
+            //Verificar se a raquete direita está na posição y da bola
+            if(
+                this.y + this.r > rightPaddle.y &&
+                this.y - this.r <rightPaddle.y + rightPaddle.h
+            ) {
+                //rebate a bola invertendo o sinal de x
+                this._reverseX()
+            }
+            else {
+                //pontuar jogador 1
+                score.increaseHuman()
+                this._pointUp(  )
+            }
+        }
+
+        //verificar se o jogador 2 fez ponto
+        if(this.x < this.r + leftPaddle.w + gapX) {
+            //Verifica se a raquete esquerta está na posição Y da balo
+            if(
+                this.y + this.r > leftPaddle.y &&
+                this.y - this.r < leftPaddle.y + leftPaddle.h) {
+                //rebate a bola invertendo o sinal de x
+                this._reverseX()
+            }
+            else {
+                //pontuar jogador 2
+                score.increaseComputer()
+                this._pointUp(  )
+            }
+        }
+
+        // verifica as laterais superior e inferior do campo
+        if (
+            (this.y - this.r < 0 && this.directionY < 0) ||
+            (this.y > field.h - this.r && this.directionY > 0)
+          ) {
+            // rebate a bola invertendo o sinal do eixo Y
+            this._reverseY()
+          }
+    },
+
+    _reverseX: function () {
+        this.directionX *= -1
+    },
+
+    _reverseY: function () {
+        this.directionY *= -1
+    },
+
+    _pointUp: function () {
+        this.x = field.w / 2
+        this.y = field.h / 2
+    },
+
+     _move: function () {
+        this.x += this.directionX * this.speed
+        this.y += this.directionY * this.speed
+    },
+
+    draw: function () {
+        canvasCtx.fillStyle = "#ffffff"
+        canvasCtx.beginPath()
+        canvasCtx.arc(this.x, this.y, this.r, 0, 2 * Math.PI, false)
+        canvasCtx.fill()
+
+        this._calcPosition()
+        this._move()
+    }
+}
+
 function setup() {
     canvasEl.width = canvasCtx.width = field.w //Define a largura da tela do jogo (preeche toda tela)
     canvasEl.height = canvasCtx.height = field.h//Define a altura da tela do jogo (preeche toda tela)
