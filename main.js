@@ -85,6 +85,7 @@ const score = {
 
 //Bola
 const ball = {
+    teste: 0,
     x: 0,
     y: 0,
     r: 20,
